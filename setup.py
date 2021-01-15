@@ -16,7 +16,9 @@ setup(
         'torchvision',
         'matplotlib',
         'numpy',
-        'pytorch-lightning'
+        'pytorch-lightning',
+        'neptune-client',
+        'psutil',
     ],
     classifiers=[
         'Development Status :: 3 - Alpha',
