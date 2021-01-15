@@ -61,6 +61,8 @@ class ImageNetLightningModelForVit(LightningModule):
         else:
             self.model: VisionTransformer = timm.create_model(self.arch, pretrained=self.pretrained)
             self.model_cfg = vision_transformer.default_cfgs[self.arch]
+        # TODO: delete me. Hack so that auto_lr_find works
+        self.model.reset_classifier(10)
 
     def setup(self, stage: str):
         # Configuring the head of the model to the number of classes
@@ -116,7 +118,7 @@ class ImageNetLightningModelForVit(LightningModule):
         #     weight_decay=self.weight_decay
         # )
         optimizer = optim.Adam(self.parameters(),
-                               lr=0.3,
+                               lr=(self.lr or self.learning_rate),
                                betas=[0.9, 0.999],
                                weight_decay=self.weight_decay)
         scheduler = lr_scheduler.LambdaLR(
@@ -240,6 +242,9 @@ def main(args: Namespace) -> None:
 
     lr_monitor = LearningRateMonitor(logging_interval='step')
     trainer = pl.Trainer.from_argparse_args(args, callbacks=[lr_monitor], **kwargs)
+
+    if args.auto_lr_find:
+        trainer.tune(model)
 
     if args.evaluate:
         trainer.test(model)
